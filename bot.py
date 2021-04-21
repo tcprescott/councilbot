@@ -114,7 +114,7 @@ async def lock(ctx):
 
 @bot.command()
 @is_public_council_channel()
-@commands.check_any(commands.has_any_role('Racing Council', 'Admins', 'Mods'), commands.is_owner(), commands.has_permissions(manage_permissions=True))
+@commands.check_any(commands.has_any_role('Council Members', 'Admins', 'Mods'), commands.is_owner(), commands.has_permissions(manage_permissions=True))
 async def unlock(ctx):
     await ctx.channel.set_permissions(ctx.guild.default_role, send_messages=True)
     await ctx.reply("This channel is now unlocked.")
