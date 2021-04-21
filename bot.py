@@ -50,7 +50,7 @@ async def on_ready():
                 "Examples of inquiries may be:\n"
                 "1) Requests to clarify the rules of competitive play.\n"
                 "2) Requests for glitch classification for use in competitive play.\n"
-                "3) Suspected cheating or other skulduggery.\n"
+                "3) Suspected cheating or other skulduggery (do not supply specifics, just request a follow up via DM).\n"
                 "4) Any other business that you think should be taken up by the council.\n\n"
                 "What should you **not** use this channel for?\n"
                 "1) Memes or jokes.\n"
