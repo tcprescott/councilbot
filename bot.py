@@ -63,7 +63,7 @@ async def on_ready():
 
 async def send_to_post_channel(message):
     inquiry_post_channel = await bot.fetch_channel(os.environ.get('INQUIRY_POST_CHANNEL'))
-    await inquiry_post_channel.send(f"*New message from {message.author.mention}*", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
+    await inquiry_post_channel.send(f"*New message from {message.author.mention} ({message.author.name}#{message.author.discriminator})*", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
     await inquiry_post_channel.send(content=message.content)
 
     for attachment in message.attachments:
@@ -89,6 +89,8 @@ async def on_message(message):
 async def on_command_error(ctx, error):
     await ctx.message.remove_reaction('⌚', ctx.bot.user)
     if isinstance(error, (commands.errors.CheckFailure)):
+        return
+    elif isinstance(error, commands.CommandNotFound):
         return
     await ctx.message.add_reaction("❌")
     await ctx.reply(f"```{error}```")
