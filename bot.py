@@ -64,7 +64,7 @@ async def on_ready():
 async def send_to_post_channel(message):
     inquiry_post_channel = await bot.fetch_channel(os.environ.get('INQUIRY_POST_CHANNEL'))
     role_ping = message.guild.get_role(int(os.environ.get('ROLE_PING')))
-    await inquiry_post_channel.send(f"{role_ping.mention} *New message from {message.author.mention} ({message.author.name}#{message.author.discriminator})*", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=False))
+    await inquiry_post_channel.send(f"{role_ping.mention} *New message from {message.author.mention} ({message.author.name}#{message.author.discriminator})*", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=True))
     await inquiry_post_channel.send(content=message.content)
 
     for attachment in message.attachments:
