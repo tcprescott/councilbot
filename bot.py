@@ -4,6 +4,9 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+import logging
+import time
+import random
 
 load_dotenv()
 
@@ -31,60 +34,42 @@ def is_public_council_channel():
         return ctx.channel.id == int(os.environ.get('PUBLIC_CHANNEL'))
     return commands.check(predicate)
 
+class OpenCouncilThread(discord.ui.View):
+    @discord.ui.button(label="Open New Inquiry", style=discord.ButtonStyle.blurple, emoji="📬")
+    async def openthread(self, button: discord.ui.Button, interaction: discord.Interaction):
+        thread = await interaction.channel.start_thread(name=f"inquiry-{random.randint(0,999999)}")
+        role_ping = interaction.guild.get_role(int(os.environ.get('ROLE_PING')))
+        for member in role_ping.members:
+            await thread.add_user(member)
+        await thread.add_user(interaction.user)
+        await interaction.response.send_message("A new thread has been opened for this inquiry.", ephemeral=True)
+
 @bot.event
 async def on_ready():
     inquiry_channel = await bot.fetch_channel(os.environ.get('INQUIRY_CHANNEL'))
-    has_bot_message = False
     async for message in inquiry_channel.history():
         if message.author == bot.user:
-            has_bot_message = True
+            await message.delete()
             continue
 
-        await send_to_post_channel(message)
-
-    if not has_bot_message:
-        await inquiry_channel.send(
-            content=(
-                "**__Council Inquiry Channel__**\n\n"
-                "This channel exists so you may submit an inquiry to the ALTTPR Racing Council for consideration.\n\n"
-                "Examples of inquiries may be:\n"
-                "1) Requests to clarify the rules of competitive play.\n"
-                "2) Requests for glitch classification for use in competitive play.\n"
-                "3) Suspected cheating or other skulduggery (do not supply specifics, just request a follow up via DM).\n"
-                "4) Any other business that you think should be taken up by the council.\n\n"
-                "What should you **not** use this channel for?\n"
-                "1) Memes or jokes.\n"
-                "2) Messages to harass members of the racing council\n"
-                "3) Non racing-related issues, such as randomizer development, casual multiworlding, etc.\n\n"
-                "These messages go to real humans (believe it or not) and abuse will result in a loss of access to this channel, and other council-related channels.\n\n"
-                "Thanks!"
-            )
-        )
-
-async def send_to_post_channel(message):
-    inquiry_post_channel = await bot.fetch_channel(os.environ.get('INQUIRY_POST_CHANNEL'))
-    role_ping = message.guild.get_role(int(os.environ.get('ROLE_PING')))
-    await inquiry_post_channel.send(f"{role_ping.mention} *New message from {message.author.mention} ({message.author.name}#{message.author.discriminator})*", allowed_mentions=discord.AllowedMentions(everyone=False, users=False, roles=True))
-    await inquiry_post_channel.send(content=message.content)
-
-    for attachment in message.attachments:
-        await inquiry_post_channel.send(file=await attachment.to_file())
-
-    await inquiry_post_channel.send("------------------------------------------------------")
-    await message.delete()
-
-@bot.event
-async def on_message(message):
-    if message.author == bot.user:
-        return
-
-    if message.channel.id == int(os.environ.get('INQUIRY_CHANNEL')):
-        await send_to_post_channel(message)
-        return
-
-    ctx = await bot.get_context(message)
-    await bot.invoke(ctx)
-
+    msg = await inquiry_channel.send(
+        content=(
+            "**__Council Inquiry Channel__**\n\n"
+            "This channel exists so you may submit an inquiry to the ALTTPR Racing Council for consideration.\n\n"
+            "Examples of inquiries may be:\n"
+            "1) Requests to clarify the rules of competitive play.\n"
+            "2) Requests for glitch classification for use in competitive play.\n"
+            "3) Suspected cheating or other skulduggery (do not supply specifics, just request a follow up via DM).\n"
+            "4) Any other business that you think should be taken up by the council.\n\n"
+            "What should you **not** use this channel for?\n"
+            "1) Memes or jokes.\n"
+            "2) Messages to harass members of the racing council\n"
+            "3) Non racing-related issues, such as randomizer development, casual multiworlding, etc.\n\n"
+            "These messages go to real humans (believe it or not) and abuse will result in a loss of access to this channel, and other council-related channels.\n\n"
+            "Thanks!"
+        ),
+        view=OpenCouncilThread()
+    )
 
 @bot.event
 async def on_command_error(ctx, error):
