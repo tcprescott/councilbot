@@ -1,11 +1,10 @@
 import asyncio
+import logging
 import os
 
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-import logging
-import time
 import random
 
 load_dotenv()
@@ -19,16 +18,6 @@ bot = commands.Bot(
     )
 )
 
-def is_inquiry_channel():
-    def predicate(ctx):
-        return ctx.channel.id == int(os.environ.get('INQUIRY_CHANNEL'))
-    return commands.check(predicate)
-
-def is_inquiry_post_channel():
-    def predicate(ctx):
-        return ctx.channel.id == int(os.environ.get('INQUIRY_POST_CHANNEL'))
-    return commands.check(predicate)
-
 def is_public_council_channel():
     def predicate(ctx):
         return ctx.channel.id == int(os.environ.get('PUBLIC_CHANNEL'))
@@ -37,12 +26,8 @@ def is_public_council_channel():
 class OpenCouncilThread(discord.ui.View):
     @discord.ui.button(label="Open New Inquiry", style=discord.ButtonStyle.blurple, emoji="📬")
     async def openthread(self, button: discord.ui.Button, interaction: discord.Interaction):
-        thread = await interaction.channel.start_thread(name=f"inquiry-{random.randint(0,999999)}")
-        role_ping = interaction.guild.get_role(int(os.environ.get('ROLE_PING')))
-        for member in role_ping.members:
-            await thread.add_user(member)
-        await thread.add_user(interaction.user)
-        await interaction.response.send_message("A new thread has been opened for this inquiry.", ephemeral=True)
+        thread = await create_inquiry_thread(interaction.channel, interaction.user)
+        await interaction.response.send_message(f"A new thread called {thread.mention} has been opened for this inquiry.", ephemeral=True)
 
 @bot.event
 async def on_ready():
@@ -52,7 +37,7 @@ async def on_ready():
             await message.delete()
             continue
 
-    msg = await inquiry_channel.send(
+    await inquiry_channel.send(
         content=(
             "**__Council Inquiry Channel__**\n\n"
             "This channel exists so you may submit an inquiry to the ALTTPR Racing Council for consideration.\n\n"
@@ -66,10 +51,24 @@ async def on_ready():
             "2) Messages to harass members of the racing council\n"
             "3) Non racing-related issues, such as randomizer development, casual multiworlding, etc.\n\n"
             "These messages go to real humans (believe it or not) and abuse will result in a loss of access to this channel, and other council-related channels.\n\n"
+            "To **submit an inquiry**, click the 📬 button below to get started!"
             "Thanks!"
         ),
         view=OpenCouncilThread()
     )
+
+@bot.event
+async def on_message(message: discord.Message):
+    if int(os.environ.get("INQUIRY_CHANNEL")) == message.channel.id:
+        if not message.author == bot.user:
+            thread = await create_inquiry_thread(message.channel, message.author)
+            await thread.send(f"Message from {message.author.mention}")
+            await thread.send(message.content)
+            try:
+                await message.author.send(f"A new thread called {thread.mention} has been opened for this inquiry.")
+            except Exception:
+                logging.exception(f"Unable to send DM to user {message.author.name}#{message.author.discriminator}.")
+            await message.delete()
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -82,6 +81,23 @@ async def on_command_error(ctx, error):
     await ctx.reply(f"```{error}```")
     raise error
 
+async def create_inquiry_thread(channel: discord.TextChannel, user: discord.Member) -> discord.Thread:
+    if "PRIVATE_THREADS" not in channel.guild.features:
+        raise Exception("Private threads must be available on this server")
+
+    if "SEVEN_DAY_THREAD_ARCHIVE" in channel.guild.features:
+        duration=7*24*60
+    elif "THREE_DAY_THREAD_ARCHIVE" in channel.guild.features:
+        duration=3*24*60
+    else:
+        duration=24*60
+
+    thread: discord.Thread = await channel.start_thread(name=f"inquiry-{random.randint(0,999999)}", message=None, auto_archive_duration=duration)
+    role_ping = channel.guild.get_role(int(os.environ.get('ROLE_PING')))
+    for member in role_ping.members:
+        await thread.add_user(member)
+    await thread.add_user(user)
+    return thread
 
 @bot.event
 async def on_command(ctx):
