@@ -9,13 +9,16 @@ import random
 
 load_dotenv()
 
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+
 bot = commands.Bot(
     command_prefix="!",
     allowed_mentions=discord.AllowedMentions(
         everyone=False,
         users=True,
         roles=False
-    )
+    ),
+    intents=discord.Intents.all()
 )
 
 def is_public_council_channel():
@@ -26,7 +29,6 @@ def is_public_council_channel():
 class OpenCouncilThread(discord.ui.View):
     @discord.ui.button(label="Open New Inquiry", style=discord.ButtonStyle.blurple, emoji="📬")
     async def openthread(self, button: discord.ui.Button, interaction: discord.Interaction):
-        print(interaction)
         thread = await create_inquiry_thread(interaction.channel, interaction.user)
         await interaction.response.send_message(f"A new thread called {thread.mention} has been opened for this inquiry.", ephemeral=True)
 
@@ -96,7 +98,9 @@ async def create_inquiry_thread(channel: discord.TextChannel, user: discord.Memb
     thread: discord.Thread = await channel.start_thread(name=f"inquiry-{user.name.lower()}-{random.randint(0,99)}", message=None, auto_archive_duration=duration)
     role_ping = channel.guild.get_role(int(os.environ.get('ROLE_PING')))
     for member in role_ping.members:
+        logging.info(f"Adding {member.name}#{member.discriminator} to thread {thread.name}")
         await thread.add_user(member)
+    logging.info(f"Adding {user.name}#{user.discriminator} to thread {thread.name}")
     await thread.add_user(user)
     return thread
 
