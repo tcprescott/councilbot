@@ -26,6 +26,7 @@ def is_public_council_channel():
 class OpenCouncilThread(discord.ui.View):
     @discord.ui.button(label="Open New Inquiry", style=discord.ButtonStyle.blurple, emoji="📬")
     async def openthread(self, button: discord.ui.Button, interaction: discord.Interaction):
+        print(interaction)
         thread = await create_inquiry_thread(interaction.channel, interaction.user)
         await interaction.response.send_message(f"A new thread called {thread.mention} has been opened for this inquiry.", ephemeral=True)
 
