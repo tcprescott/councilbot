@@ -6,13 +6,9 @@ name = "pypi"
 [packages]
 python-dotenv = "*"
 requests = "*"
-pyyaml = "*"
+PyYAML = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.8"
-
-[packages.discordpy]
-git = "https://github.com/Rapptz/discord.py.git"
-ref = "0cc67e58eded2dd83841d6e4f62a4bc626348fb2"
