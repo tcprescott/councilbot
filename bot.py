@@ -29,9 +29,24 @@ def is_public_council_channel():
 class OpenCouncilThread(discord.ui.View):
     @discord.ui.button(label="Open New Inquiry", style=discord.ButtonStyle.blurple, emoji="📬")
     async def openthread(self, button: discord.ui.Button, interaction: discord.Interaction):
-        print("recieved button press")
-        thread = await create_inquiry_thread(interaction.channel, interaction.user)
+        if "PRIVATE_THREADS" not in interaction.channel.guild.features:
+            raise Exception("Private threads must be available on this server")
+
+        if "SEVEN_DAY_THREAD_ARCHIVE" in interaction.channel.guild.features:
+            duration=7*24*60
+        elif "THREE_DAY_THREAD_ARCHIVE" in interaction.channel.guild.features:
+            duration=3*24*60
+        else:
+            duration=24*60
+
+        thread: discord.Thread = await interaction.channel.create_thread(name=f"Inquiry {interaction.user.name} {random.randint(0,999)}", message=None, auto_archive_duration=duration)
+        await thread.add_user(interaction.user)
         await interaction.response.send_message(f"A new thread called {thread.mention} has been opened for this inquiry.", ephemeral=True)
+        role_ping = interaction.channel.guild.get_role(int(os.environ.get('ROLE_PING')))
+        for member in role_ping.members:
+            logging.info(f"Adding {member.name}#{member.discriminator} to thread {thread.name}")
+            await thread.add_user(member)
+        logging.info(f"Adding {interaction.user.name}#{interaction.user.discriminator} to thread {thread.name}")
 
 @bot.event
 async def on_ready():
@@ -61,18 +76,18 @@ async def on_ready():
         view=OpenCouncilThread()
     )
 
-@bot.event
-async def on_message(message: discord.Message):
-    if int(os.environ.get("INQUIRY_CHANNEL")) == message.channel.id:
-        if not message.author == bot.user:
-            thread = await create_inquiry_thread(message.channel, message.author)
-            await thread.send(f"Message from {message.author.mention}")
-            await thread.send(message.content)
-            try:
-                await message.author.send(f"A new thread called {thread.mention} has been opened for this inquiry.")
-            except Exception:
-                logging.exception(f"Unable to send DM to user {message.author.name}#{message.author.discriminator}.")
-            await message.delete()
+# @bot.event
+# async def on_message(message: discord.Message):
+#     if int(os.environ.get("INQUIRY_CHANNEL")) == message.channel.id:
+#         if not message.author == bot.user:
+#             thread = await create_inquiry_thread(message.channel, message.author)
+#             await thread.send(f"Message from {message.author.mention}")
+#             await thread.send(message.content)
+#             try:
+#                 await message.author.send(f"A new thread called {thread.mention} has been opened for this inquiry.")
+#             except Exception:
+#                 logging.exception(f"Unable to send DM to user {message.author.name}#{message.author.discriminator}.")
+#             await message.delete()
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -85,25 +100,8 @@ async def on_command_error(ctx, error):
     await ctx.reply(f"```{error}```")
     raise error
 
-async def create_inquiry_thread(channel: discord.TextChannel, user: discord.Member) -> discord.Thread:
-    if "PRIVATE_THREADS" not in channel.guild.features:
-        raise Exception("Private threads must be available on this server")
+# async def create_inquiry_thread(channel: discord.TextChannel, user: discord.Member, interaction) -> discord.Thread:
 
-    if "SEVEN_DAY_THREAD_ARCHIVE" in channel.guild.features:
-        duration=7*24*60
-    elif "THREE_DAY_THREAD_ARCHIVE" in channel.guild.features:
-        duration=3*24*60
-    else:
-        duration=24*60
-
-    thread: discord.Thread = await channel.create_thread(name=f"Inquiry {user.name} {random.randint(0,999)}", message=None, auto_archive_duration=duration)
-    role_ping = channel.guild.get_role(int(os.environ.get('ROLE_PING')))
-    for member in role_ping.members:
-        logging.info(f"Adding {member.name}#{member.discriminator} to thread {thread.name}")
-        await thread.add_user(member)
-    logging.info(f"Adding {user.name}#{user.discriminator} to thread {thread.name}")
-    await thread.add_user(user)
-    return thread
 
 @bot.event
 async def on_command(ctx):
