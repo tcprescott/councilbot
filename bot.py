@@ -9,7 +9,7 @@ import random
 
 load_dotenv()
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
 bot = commands.Bot(
     command_prefix="!",
