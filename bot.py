@@ -9,7 +9,7 @@ import random
 
 load_dotenv()
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 bot = commands.Bot(
     command_prefix="!",
@@ -55,7 +55,7 @@ async def on_ready():
             "2) Messages to harass members of the racing council\n"
             "3) Non racing-related issues, such as randomizer development, casual multiworlding, etc.\n\n"
             "These messages go to real humans (believe it or not) and abuse will result in a loss of access to this channel, and other council-related channels.\n\n"
-            "To **submit an inquiry**, click the 📬 button below to get started!"
+            "To **submit an inquiry**, click the 📬 button below to get started!\n\n"
             "Thanks!"
         ),
         view=OpenCouncilThread()
