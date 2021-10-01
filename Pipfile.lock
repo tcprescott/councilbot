@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6e1909871264790fc21370597d938c0f77f42a24469b13da7a6bb9859603158c"
+            "sha256": "23eb8996d234c82637984856d1397c5a31eeeb8cfaa00c434f5b2ecee456d6eb"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -38,6 +38,9 @@
             ],
             "markers": "python_version >= '3'",
             "version": "==3.2"
+        },
+        "py-cord": {
+            "git": "https://github.com/Pycord-Development/pycord.git"
         },
         "python-dotenv": {
             "hashes": [
