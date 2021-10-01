@@ -96,7 +96,7 @@ async def create_inquiry_thread(channel: discord.TextChannel, user: discord.Memb
     else:
         duration=24*60
 
-    thread: discord.Thread = await channel.create_thread(name=f"inquiry-{user.name.lower()}-{random.randint(0,99)}", message=None, auto_archive_duration=duration)
+    thread: discord.Thread = await channel.create_thread(name=f"Inquiry {user.name} {random.randint(0,999)}", message=None, auto_archive_duration=duration)
     role_ping = channel.guild.get_role(int(os.environ.get('ROLE_PING')))
     for member in role_ping.members:
         logging.info(f"Adding {member.name}#{member.discriminator} to thread {thread.name}")
