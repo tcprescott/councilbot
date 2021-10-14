@@ -11,15 +11,33 @@ load_dotenv()
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
-bot = commands.Bot(
-    command_prefix="!",
-    allowed_mentions=discord.AllowedMentions(
-        everyone=False,
-        users=True,
-        roles=False
-    ),
-    intents=discord.Intents.all()
-)
+class CouncilBot(commands.Bot):
+    def __init__(self):
+        super().__init__(
+            command_prefix="!",
+            allowed_mentions=discord.AllowedMentions(
+                everyone=False,
+                users=True,
+                roles=False
+            ),
+            intents=discord.Intents.all()
+        )
+        self.persistent_views_added = False
+
+    async def on_ready(self):
+        if not self.persistent_views_added:
+            # Register the persistent view for listening here.
+            # Note that this does not send the view to any message.
+            # In order to do this you need to first send a message with the View, which is shown below.
+            # If you have the message_id you can also pass it as a keyword argument, but for this example
+            # we don't have one.
+            self.add_view(OpenCouncilThread())
+            self.persistent_views_added = True
+
+        print(f"Logged in as {self.user} (ID: {self.user.id})")
+        print("------")
+
+bot = CouncilBot()
 
 def is_public_council_channel():
     def predicate(ctx):
