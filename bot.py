@@ -27,7 +27,7 @@ def is_public_council_channel():
     return commands.check(predicate)
 
 class OpenCouncilThread(discord.ui.View):
-    @discord.ui.button(label="Open New Inquiry", style=discord.ButtonStyle.blurple, emoji="📬")
+    @discord.ui.button(label="Open New Inquiry", style=discord.ButtonStyle.blurple, emoji="📬", custom_id="councilbot:open_new_inquiry",)
     async def openthread(self, button: discord.ui.Button, interaction: discord.Interaction):
         if "PRIVATE_THREADS" not in interaction.channel.guild.features:
             raise Exception("Private threads must be available on this server")
