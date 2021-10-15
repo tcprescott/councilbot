@@ -9,7 +9,7 @@ import random
 
 load_dotenv()
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 class CouncilBot(commands.Bot):
     def __init__(self):
@@ -45,7 +45,10 @@ def is_public_council_channel():
     return commands.check(predicate)
 
 class OpenCouncilThread(discord.ui.View):
-    @discord.ui.button(label="Open New Inquiry", style=discord.ButtonStyle.blurple, emoji="📬", custom_id="councilbot:open_new_inquiry",)
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Open New Inquiry", style=discord.ButtonStyle.blurple, emoji="📬", custom_id="councilbot:open_inquiry",)
     async def openthread(self, button: discord.ui.Button, interaction: discord.Interaction):
         if "PRIVATE_THREADS" not in interaction.channel.guild.features:
             raise Exception("Private threads must be available on this server")
@@ -66,15 +69,18 @@ class OpenCouncilThread(discord.ui.View):
             await thread.add_user(member)
         logging.info(f"Adding {interaction.user.name}#{interaction.user.discriminator} to thread {thread.name}")
 
-@bot.event
-async def on_ready():
-    inquiry_channel = await bot.fetch_channel(os.environ.get('INQUIRY_CHANNEL'))
-    async for message in inquiry_channel.history():
-        if message.author == bot.user:
-            await message.delete()
-            continue
+#@bot.event
+#async def on_ready():
+#    inquiry_channel = await bot.fetch_channel(os.environ.get('INQUIRY_CHANNEL'))
+#    async for message in inquiry_channel.history():
+#        if message.author == bot.user:
+#            await message.delete()
+#            continue
 
-    await inquiry_channel.send(
+@bot.command()
+@commands.is_owner()
+async def inquiry(ctx):
+    await ctx.send(
         content=(
             "**__Council Inquiry Channel__**\n\n"
             "This channel exists so you may submit an inquiry to the ALTTPR Racing Council for consideration.\n\n"
