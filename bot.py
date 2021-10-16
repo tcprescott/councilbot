@@ -26,11 +26,6 @@ class CouncilBot(commands.Bot):
 
     async def on_ready(self):
         if not self.persistent_views_added:
-            # Register the persistent view for listening here.
-            # Note that this does not send the view to any message.
-            # In order to do this you need to first send a message with the View, which is shown below.
-            # If you have the message_id you can also pass it as a keyword argument, but for this example
-            # we don't have one.
             self.add_view(OpenCouncilThread())
             self.persistent_views_added = True
 
@@ -48,8 +43,24 @@ class OpenCouncilThread(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Open New Inquiry", style=discord.ButtonStyle.blurple, emoji="📬", custom_id="councilbot:open_inquiry",)
+    @discord.ui.button(label="Open New Inquiry", style=discord.ButtonStyle.blurple, emoji="📬", custom_id="councilbot:open_inquiry")
     async def openthread(self, button: discord.ui.Button, interaction: discord.Interaction):
+        view = ConfirmCouncilThread()
+        await interaction.response.send_message(
+            (
+                "Are you sure you want to **ping a bunch of people**?\n\n"
+                "This message will stop working after one minute.\n"
+                "If you did not intend to do this, simply click \"Dismiss message\" at the bottom of this response. Thanks!"
+            ),
+            view=view, ephemeral=True)
+        pass
+
+class ConfirmCouncilThread(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=60)
+
+    @discord.ui.button(label="Yes!", style=discord.ButtonStyle.red, row=2)
+    async def yes(self, button: discord.ui.Button, interaction: discord.Interaction):
         if "PRIVATE_THREADS" not in interaction.channel.guild.features:
             raise Exception("Private threads must be available on this server")
 
@@ -69,14 +80,6 @@ class OpenCouncilThread(discord.ui.View):
             await thread.add_user(member)
         logging.info(f"Adding {interaction.user.name}#{interaction.user.discriminator} to thread {thread.name}")
 
-#@bot.event
-#async def on_ready():
-#    inquiry_channel = await bot.fetch_channel(os.environ.get('INQUIRY_CHANNEL'))
-#    async for message in inquiry_channel.history():
-#        if message.author == bot.user:
-#            await message.delete()
-#            continue
-
 @bot.command()
 @commands.is_owner()
 async def inquiry(ctx):
@@ -87,31 +90,18 @@ async def inquiry(ctx):
             "Examples of inquiries may be:\n"
             "1) Requests to clarify the rules of competitive play.\n"
             "2) Requests for glitch classification for use in competitive play.\n"
-            "3) Suspected cheating or other skulduggery (do not supply specifics, just request a follow up via DM).\n"
+            "3) Suspected cheating or other skulduggery.\n"
             "4) Any other business that you think should be taken up by the council.\n\n"
             "What should you **not** use this channel for?\n"
             "1) Memes or jokes.\n"
-            "2) Messages to harass members of the racing council\n"
+            "2) Inquiries to harass members of the racing council\n"
             "3) Non racing-related issues, such as randomizer development, casual multiworlding, etc.\n\n"
-            "These messages go to real humans (believe it or not) and abuse will result in a loss of access to this channel, and other council-related channels.\n\n"
-            "To **submit an inquiry**, click the 📬 button below to get started!\n\n"
+            "Abuse will result in a loss of access to this channel, and other council-related channels.  This button **pings the whole council**.\n\n"
+            "To **submit an inquiry**, click the 📬 button below, then click \"Yes!\" button in the next message to confirm.\n\n"
             "Thanks!"
         ),
         view=OpenCouncilThread()
     )
-
-# @bot.event
-# async def on_message(message: discord.Message):
-#     if int(os.environ.get("INQUIRY_CHANNEL")) == message.channel.id:
-#         if not message.author == bot.user:
-#             thread = await create_inquiry_thread(message.channel, message.author)
-#             await thread.send(f"Message from {message.author.mention}")
-#             await thread.send(message.content)
-#             try:
-#                 await message.author.send(f"A new thread called {thread.mention} has been opened for this inquiry.")
-#             except Exception:
-#                 logging.exception(f"Unable to send DM to user {message.author.name}#{message.author.discriminator}.")
-#             await message.delete()
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -123,9 +113,6 @@ async def on_command_error(ctx, error):
     await ctx.message.add_reaction("❌")
     await ctx.reply(f"```{error}```")
     raise error
-
-# async def create_inquiry_thread(channel: discord.TextChannel, user: discord.Member, interaction) -> discord.Thread:
-
 
 @bot.event
 async def on_command(ctx):
