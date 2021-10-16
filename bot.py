@@ -48,7 +48,7 @@ class OpenCouncilThread(discord.ui.View):
         view = ConfirmCouncilThread()
         await interaction.response.send_message(
             (
-                "Are you sure you want to **ping a bunch of people**?\n\n"
+                "This will open a thread with the whole council and notify them, are you sure you want to do that?\n\n"
                 "This message will stop working after one minute.\n"
                 "If you did not intend to do this, simply click \"Dismiss message\" at the bottom of this response. Thanks!"
             ),
@@ -96,7 +96,7 @@ async def inquiry(ctx):
             "1) Memes or jokes.\n"
             "2) Inquiries to harass members of the racing council\n"
             "3) Non racing-related issues, such as randomizer development, casual multiworlding, etc.\n\n"
-            "Abuse will result in a loss of access to this channel, and other council-related channels.  This button **pings the whole council**.\n\n"
+            "Abuse will result in a loss of access to this channel, and other council-related channels.  This button opens a private thread with the council.\n\n"
             "To **submit an inquiry**, click the 📬 button below, then click \"Yes!\" button in the next message to confirm.\n\n"
             "Thanks!"
         ),
