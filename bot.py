@@ -82,7 +82,7 @@ class ConfirmCouncilThread(discord.ui.View):
 
 @bot.command()
 @commands.is_owner()
-async def inquiry(ctx):
+async def inquiry(ctx: commands.Context):
     await ctx.send(
         content=(
             "**__Council Inquiry Channel__**\n\n"
@@ -102,6 +102,7 @@ async def inquiry(ctx):
         ),
         view=OpenCouncilThread()
     )
+    await ctx.message.delete()
 
 @bot.event
 async def on_command_error(ctx, error):
